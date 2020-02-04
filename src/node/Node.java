@@ -4,37 +4,23 @@ import java.util.ArrayList;
 
 public class Node {
     private BootstrapServer bootstrapServer;
-    private String nodeName;
-    private String ip;
-    private String sendPort;
-    private String recvPort;
+    private NodeData nodeData;
     private ArrayList<Node> neighbours;
     private ArrayList<String> files;
 
-    public Node(BootstrapServer bootstrapServer, String nodeName, String ip, String sendPort, String recvPort, ArrayList<Node> neighbours, ArrayList<String> files) {
+    public Node(BootstrapServer bootstrapServer, NodeData nodeData, ArrayList<Node> neighbours, ArrayList<String> files) {
         this.bootstrapServer = bootstrapServer;
-        this.nodeName = nodeName;
-        this.ip = ip;
-        this.sendPort = sendPort;
-        this.recvPort = recvPort;
+        this.nodeData = nodeData;
         this.neighbours = neighbours;
         this.files = files;
     }
 
-    public String getSendPort() {
-        return sendPort;
+    public NodeData getNodeData() {
+        return nodeData;
     }
 
-    public void setSendPort(String sendPort) {
-        this.sendPort = sendPort;
-    }
-
-    public String getRecvPort() {
-        return recvPort;
-    }
-
-    public void setRecvPort(String recvPort) {
-        this.recvPort = recvPort;
+    public void setNodeData(NodeData nodeData) {
+        this.nodeData = nodeData;
     }
 
     public BootstrapServer getBootstrapServer() {
@@ -43,22 +29,6 @@ public class Node {
 
     public void setBootstrapServer(BootstrapServer bootstrapServer) {
         this.bootstrapServer = bootstrapServer;
-    }
-
-    public String getNodeName() {
-        return nodeName;
-    }
-
-    public void setNodeName(String nodeName) {
-        this.nodeName = nodeName;
-    }
-
-    public String getIp() {
-        return ip;
-    }
-
-    public void setIp(String ip) {
-        this.ip = ip;
     }
 
     public ArrayList<Node> getNeighbours() {
