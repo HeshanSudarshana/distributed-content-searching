@@ -1,5 +1,8 @@
 package node;
 
+import request.RegReq;
+import utils.OpsUDP;
+
 import java.util.ArrayList;
 
 public class Node {
@@ -7,12 +10,14 @@ public class Node {
     private NodeData nodeData;
     private ArrayList<Node> neighbours;
     private ArrayList<String> files;
+    private OpsUDP opsUDP;
 
     public Node(BootstrapServer bootstrapServer, NodeData nodeData, ArrayList<Node> neighbours, ArrayList<String> files) {
         this.bootstrapServer = bootstrapServer;
         this.nodeData = nodeData;
         this.neighbours = neighbours;
         this.files = files;
+        opsUDP = new OpsUDP();
     }
 
     public NodeData getNodeData() {
@@ -45,5 +50,11 @@ public class Node {
 
     public void setFiles(ArrayList<String> files) {
         this.files = files;
+    }
+
+    //registers the current Node in Boostrep Server
+    public void regToBS() {
+        RegReq registerRequest = new RegReq(nodeData.getIp(), nodeData.getRecvPort(), nodeData.getNodeName());
+        opsUDP.sendRequest(registerRequest, bootstrapServer.getIp(), bootstrapServer.getPort());
     }
 }

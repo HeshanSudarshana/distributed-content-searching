@@ -1,7 +1,7 @@
 package request;
 
 
-public class RegReq {
+public class RegReq extends Request {
     private String IPAddress, port, uName;
 
     public RegReq(String IPAddress, String port, String uName) {

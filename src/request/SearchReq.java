@@ -2,7 +2,7 @@ package request;
 
 import node.NodeData;
 
-public class SearchReq {
+public class SearchReq extends Request {
     private String fileName;
     private NodeData nodeData;
 

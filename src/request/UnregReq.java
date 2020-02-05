@@ -1,4 +1,4 @@
 package request;
 
-public class UnregReq {
+public class UnregReq extends Request {
 }
