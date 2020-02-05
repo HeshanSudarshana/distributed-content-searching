@@ -5,24 +5,35 @@ import request.RegReq;
 import utils.Listener;
 import utils.OpsUDP;
 
+import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.net.DatagramSocket;
 import java.net.SocketException;
 import java.util.ArrayList;
+import java.util.Random;
+import java.util.Scanner;
 
 public class Node {
+    private static String FILE_LIST_PATH = "./resources/FileNames.txt";
+    private static String QUERY_LIST_PATH = "./resources/Queries.txt";
+
     private BootstrapServer bootstrapServer;
     private NodeData nodeData;
     private ArrayList<NodeData> neighbours;
     private ArrayList<String> files;
+    private ArrayList<String> queries;
     private OpsUDP opsUDP;
     private boolean isRegistered, isRunning;
+    private Scanner fileScanner;
 
     public Node(BootstrapServer bootstrapServer, NodeData nodeData) {
         this.bootstrapServer = bootstrapServer;
         this.nodeData = nodeData;
         //this.neighbours = neighbours;
         //this.files = files;
+        generateFileList();
+        generateQueryList();
         opsUDP = new OpsUDP(nodeData.getSendPort(), nodeData.getRecvPort(), this);
         isRegistered = false;
     }
@@ -57,6 +68,46 @@ public class Node {
 
     public void setFiles(ArrayList<String> files) {
         this.files = files;
+    }
+
+    public void generateFileList() {
+        // reading the file and adding it to files
+        files = new ArrayList<>();
+        ArrayList <String> tempFiles = new ArrayList<>();
+        try {
+            fileScanner = new Scanner(new File(FILE_LIST_PATH));
+        } catch (FileNotFoundException e) {
+            System.out.println("File not found!");
+        }
+        while (fileScanner.hasNext()) {
+            tempFiles.add(fileScanner.nextLine());
+        }
+        fileScanner.close();
+
+        // select random files from if (3-5)
+        Random randomGen = new Random();
+        int num = randomGen.nextInt(3) + 3;
+        int i=0;
+        while (i<num) {
+            int index = randomGen.nextInt(tempFiles.size());
+            if (!files.contains(tempFiles.get(index))) {
+                files.add(tempFiles.get(index));
+                i++;
+            }
+        }
+    }
+
+    public void generateQueryList() {
+        queries = new ArrayList<>();
+        try {
+            fileScanner = new Scanner(new File(QUERY_LIST_PATH));
+        } catch (FileNotFoundException e) {
+            System.out.println("File not found!");
+        }
+        while (fileScanner.hasNext()) {
+            queries.add(fileScanner.nextLine());
+        }
+        fileScanner.close();
     }
 
     //registers the current Node in Boostrep Server
