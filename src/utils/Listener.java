@@ -3,6 +3,7 @@ package utils;
 import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
+import java.net.SocketTimeoutException;
 
 /**
  * Created by Oshada on 2020-02-05.
@@ -26,8 +27,10 @@ public class Listener implements Runnable {
             try {
                 recvSocket.receive(incoming);
                 byte[] data = incoming.getData();
-                String s = new String(data, 0, incoming.getLength());
-                opsUDP.prosessMessage(s);
+                String res = new String(data, 0, incoming.getLength());
+                opsUDP.processMessage(res);
+            } catch (SocketTimeoutException ex) {
+
             } catch (IOException e) {
                 e.printStackTrace();
             }

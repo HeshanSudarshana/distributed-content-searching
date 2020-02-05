@@ -13,6 +13,11 @@ public class NodeData {
         this.recvPort = recvPort;
     }
 
+    public NodeData(String ip, String recvPort) {
+        this.ip = ip;
+        this.recvPort = recvPort;
+    }
+
     public String getNodeName() {
         return nodeName;
     }

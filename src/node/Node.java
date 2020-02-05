@@ -12,7 +12,7 @@ import java.util.ArrayList;
 public class Node {
     private BootstrapServer bootstrapServer;
     private NodeData nodeData;
-    private ArrayList<Node> neighbours;
+    private ArrayList<NodeData> neighbours;
     private ArrayList<String> files;
     private OpsUDP opsUDP;
     private boolean isRegistered, isRunning;
@@ -42,11 +42,11 @@ public class Node {
         this.bootstrapServer = bootstrapServer;
     }
 
-    public ArrayList<Node> getNeighbours() {
+    public ArrayList<NodeData> getNeighbours() {
         return neighbours;
     }
 
-    public void setNeighbours(ArrayList<Node> neighbours) {
+    public void setNeighbours(ArrayList<NodeData> neighbours) {
         this.neighbours = neighbours;
     }
 
@@ -61,14 +61,18 @@ public class Node {
     //registers the current Node in Boostrep Server
     private void regToBS() throws IOException {
         RegReq registerRequest = new RegReq(nodeData.getIp(), nodeData.getRecvPort(), nodeData.getNodeName());
-        opsUDP.RegisterNode(registerRequest, bootstrapServer.getIp(), bootstrapServer.getPort());
+        neighbours = opsUDP.RegisterNode(registerRequest, bootstrapServer.getIp(), bootstrapServer.getPort());
     }
 
     //starts the node functionality
     public void start() throws IOException {
         isRunning = true;
         regToBS();
-        startListening();
+        if (neighbours != null) {
+            printNeighbors();
+            startListening();
+        }
+
 
     }
 
@@ -79,5 +83,24 @@ public class Node {
         System.out.println(nodeData.getNodeName() + " started listening on " + nodeData.getIp() + ":" + nodeData.getRecvPort());
         Thread listenerThread = new Thread(new Listener(isRunning, receivingSocket, opsUDP));
         listenerThread.start();
+    }
+
+    private void printNeighbors() {
+        System.out.println("Neighbors List");
+        System.out.println("-----------------------");
+        System.out.println("|     IP        |PORT |");
+        System.out.println("-----------------------");
+        for (NodeData nodeData : neighbours) {
+            String ip = nodeData.getIp();
+            String port = nodeData.getRecvPort();
+            while (ip.length() < 15) {
+                ip = ip + " ";
+            }
+            while (port.length() < 5) {
+                port = port + " ";
+            }
+            System.out.println("|" + ip + "|" + port + "|");
+        }
+        System.out.println("-----------------------");
     }
 }
