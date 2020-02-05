@@ -11,6 +11,7 @@ public class RegReq {
     }
 
     public String getRequest() {
+        return setMessageLength();
 
     }
 
