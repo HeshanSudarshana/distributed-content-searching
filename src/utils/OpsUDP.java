@@ -3,7 +3,6 @@ package utils;
 import node.Node;
 import node.NodeData;
 import request.Request;
-import request.UnregReq;
 import response.JoinOK;
 import response.Response;
 
@@ -56,13 +55,10 @@ public class OpsUDP {
             socket.close();
             return null;
         }
-
-        //TODO read the ack and act upon
-
     }
 
     public ArrayList<NodeData> prosessRegOK(String msg) throws IOException {
-        StringTokenizer st = new StringTokenizer(msg);
+        StringTokenizer st = new StringTokenizer(msg, " ");
         String length = st.nextToken();
         st.nextToken();
         String noNodes = st.nextToken();
@@ -85,8 +81,6 @@ public class OpsUDP {
             return null;
         } else if (noNodes.equals("9998")) {
             System.out.println("Registering Failed: This node is already registered, unregistering...");
-            UnregReq unreg = new UnregReq(node.getNodeData().getIp(), node.getNodeData().getRecvPort(), node.getNodeData().getNodeName());
-            sendRequest(unreg, new NodeData(node.getBootstrapServer().getIp(), node.getBootstrapServer().getPort()));
             return null;
         } else if (noNodes.equals("9997")) {
             System.out.println("Registering Failed: Already registered to another user, try different IP & Port");
@@ -95,8 +89,47 @@ public class OpsUDP {
             System.out.println("Registration Failed: Can't register any new nodes, BS is full");
             return null;
         }
+    }
+
+    public void unregisterNode(Request request, String receiversIP, String receivingPort) throws IOException {
+        System.out.println("Sent a " + request.getType() + " request to " + receiversIP + " on " + receivingPort);
+        DatagramSocket socket = new DatagramSocket(Integer.parseInt(sendPort));
+        InetAddress receivingNodeAddress = InetAddress.getByName(receiversIP);
+        byte[] buffer = request.getRequest().getBytes();
+        DatagramPacket packet = new DatagramPacket(buffer, buffer.length, receivingNodeAddress, Integer.parseInt(receivingPort));
+        socket.send(packet);
+        buffer = new byte[65536];
+        String response;
+        DatagramPacket incoming = new DatagramPacket(buffer, buffer.length);
+        socket.setSoTimeout(2000);
+        try {
+            socket.receive(incoming);
+            byte[] data = incoming.getData();
+            response = new String(data, 0, incoming.getLength());
+            if (response != null) {
+                socket.close();
+                StringTokenizer st = new StringTokenizer(response, " ");
+                st.nextToken();
+                if (st.nextToken().equals("UNROK")) {
+                    processUNROK(st);
+                } else {
+                    System.out.println("invalid response: " + response);
+                }
+                socket.close();
+            } else {
+                System.out.println("Incorrect response from boostrap server...");
+                socket.close();
+            }
+        } catch (SocketTimeoutException ex) {
+            System.out.println("No response from boostrap server...");
+            socket.close();
+        } catch (IOException e) {
+            socket.close();
+            e.printStackTrace();
+        }
 
     }
+
 
     public void processMessage(String msg) throws IOException {
         //TODO use this method to processMessages from other Nodes
@@ -105,12 +138,22 @@ public class OpsUDP {
         String command = st.nextToken();
         synchronized (node.getNeighbours()) {
             if (command.equals("JOIN")) {
-                System.out.println("Join message received " + msg);
+                System.out.println("JOIN message received " + msg);
                 processJoin(st);
             } else if (command.equals("JoinOK")) {
-                // parse join ok message
-                System.out.println("JOIN OK message received " + msg);
+                //TODO patse JOINOK
+                System.out.println("JOINOK message received " + msg);
             }
+        }
+
+    }
+
+    private void processUNROK(StringTokenizer st) {
+        String value = st.nextToken();
+        if (value.equals(0)) {
+            System.out.println("unregistered successfully");
+        } else {
+            System.out.println("Failed Unregistering the node");
         }
 
     }
@@ -166,4 +209,6 @@ public class OpsUDP {
         }
         return false;
     }
+
+
 }
