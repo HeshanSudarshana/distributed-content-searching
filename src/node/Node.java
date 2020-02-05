@@ -3,6 +3,7 @@ package node;
 import request.RegReq;
 import utils.OpsUDP;
 
+import java.io.IOException;
 import java.util.ArrayList;
 
 public class Node {
@@ -11,13 +12,15 @@ public class Node {
     private ArrayList<Node> neighbours;
     private ArrayList<String> files;
     private OpsUDP opsUDP;
+    private boolean isRegistered;
 
-    public Node(BootstrapServer bootstrapServer, NodeData nodeData, ArrayList<Node> neighbours, ArrayList<String> files) {
+    public Node(BootstrapServer bootstrapServer, NodeData nodeData) {
         this.bootstrapServer = bootstrapServer;
         this.nodeData = nodeData;
-        this.neighbours = neighbours;
-        this.files = files;
-        opsUDP = new OpsUDP();
+        //this.neighbours = neighbours;
+        //this.files = files;
+        opsUDP = new OpsUDP(nodeData.getSendPort(), nodeData.getRecvPort());
+        isRegistered = false;
     }
 
     public NodeData getNodeData() {
@@ -53,7 +56,7 @@ public class Node {
     }
 
     //registers the current Node in Boostrep Server
-    public void regToBS() {
+    public void regToBS() throws IOException {
         RegReq registerRequest = new RegReq(nodeData.getIp(), nodeData.getRecvPort(), nodeData.getNodeName());
         opsUDP.sendRequest(registerRequest, bootstrapServer.getIp(), bootstrapServer.getPort());
     }

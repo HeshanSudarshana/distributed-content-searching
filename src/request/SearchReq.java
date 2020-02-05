@@ -26,4 +26,9 @@ public class SearchReq extends Request {
     public void setNodeData(NodeData nodeData) {
         this.nodeData = nodeData;
     }
+
+    @Override
+    public String getRequest() {
+        return null;
+    }
 }

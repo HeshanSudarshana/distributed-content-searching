@@ -8,6 +8,7 @@ public class RegReq extends Request {
         this.IPAddress = IPAddress;
         this.port = port;
         this.uName = uName;
+        this.type = "REG";
     }
 
     public String getRequest() {
@@ -29,4 +30,6 @@ public class RegReq extends Request {
         }
         return message;
     }
+
+
 }
