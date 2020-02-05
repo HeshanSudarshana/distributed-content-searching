@@ -3,6 +3,7 @@ package utils;
 import node.Node;
 import node.NodeData;
 import request.Request;
+import request.UnregReq;
 import response.JoinOK;
 import response.Response;
 
@@ -60,7 +61,7 @@ public class OpsUDP {
 
     }
 
-    public ArrayList<NodeData> prosessRegOK(String msg) {
+    public ArrayList<NodeData> prosessRegOK(String msg) throws IOException {
         StringTokenizer st = new StringTokenizer(msg);
         String length = st.nextToken();
         st.nextToken();
@@ -84,7 +85,8 @@ public class OpsUDP {
             return null;
         } else if (noNodes.equals("9998")) {
             System.out.println("Registering Failed: This node is already registered, unregistering...");
-
+            UnregReq unreg = new UnregReq(node.getNodeData().getIp(), node.getNodeData().getRecvPort(), node.getNodeData().getNodeName());
+            sendRequest(unreg, new NodeData(node.getBootstrapServer().getIp(), node.getBootstrapServer().getPort()));
             return null;
         } else if (noNodes.equals("9997")) {
             System.out.println("Registering Failed: Already registered to another user, try different IP & Port");
