@@ -20,11 +20,11 @@ public class RegReq extends Request {
         int lengthOfMessage;
         int lengthOfCompulsoryPart = IPAddress.length() + port.length() + uName.length();
         if (lengthOfCompulsoryPart + 7 < 9999) {
-            lengthOfMessage = lengthOfCompulsoryPart + 7;
+            lengthOfMessage = lengthOfCompulsoryPart + 11;
         } else {
             lengthOfMessage = lengthOfCompulsoryPart + String.valueOf(lengthOfCompulsoryPart).length();
         }
-        String message = String.valueOf(lengthOfMessage) + " " + IPAddress + " " + port + " " + uName;
+        String message = String.valueOf(lengthOfMessage) + " REG " + IPAddress + " " + port + " " + uName;
         while (message.length() < lengthOfMessage) {
             message = "0" + message;
         }
