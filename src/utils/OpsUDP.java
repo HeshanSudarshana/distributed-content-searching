@@ -61,14 +61,39 @@ public class OpsUDP {
     }
 
     public ArrayList<NodeData> prosessRegOK(String msg) {
-        String[] parts = msg.split(" ");
-        ArrayList<NodeData> nodes = new ArrayList<>();
-        if (parts.length > 3) {
-            for (int i = 3; i < parts.length; i += 2) {
-                nodes.add(new NodeData(parts[i], parts[i + 1]));
-            }
+        StringTokenizer st = new StringTokenizer(msg);
+        String length = st.nextToken();
+        st.nextToken();
+        String noNodes = st.nextToken();
+        if (noNodes.equals("0")) {
+            return new ArrayList<NodeData>();
+        } else if (noNodes.equals("1")) {
+            ArrayList<NodeData> nodes = new ArrayList<>();
+            NodeData node1 = new NodeData(st.nextToken(), st.nextToken());
+            nodes.add(node1);
+            return nodes;
+        } else if (noNodes.equals("2")) {
+            ArrayList<NodeData> nodes = new ArrayList<>();
+            NodeData node1 = new NodeData(st.nextToken(), st.nextToken());
+            nodes.add(node1);
+            NodeData node2 = new NodeData(st.nextToken(), st.nextToken());
+            nodes.add(node2);
+            return nodes;
+        } else if (noNodes.equals("9999")) {
+            System.out.println("Error in the registration command");
+            return null;
+        } else if (noNodes.equals("9998")) {
+            System.out.println("Registering Failed: This node is already registered, unregistering...");
+
+            return null;
+        } else if (noNodes.equals("9997")) {
+            System.out.println("Registering Failed: Already registered to another user, try different IP & Port");
+            return null;
+        } else {
+            System.out.println("Registration Failed: Can't register any new nodes, BS is full");
+            return null;
         }
-        return nodes;
+
     }
 
     public void processMessage(String msg) throws IOException {
@@ -78,11 +103,11 @@ public class OpsUDP {
         String command = st.nextToken();
         synchronized (node.getNeighbours()) {
             if (command.equals("JOIN")) {
-                System.out.println("Join message received" + msg);
+                System.out.println("Join message received " + msg);
                 processJoin(st);
             } else if (command.equals("JoinOK")) {
                 // parse join ok message
-                System.out.println("JOIN OK message received" + msg);
+                System.out.println("JOIN OK message received " + msg);
             }
         }
 
