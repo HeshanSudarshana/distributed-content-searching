@@ -15,8 +15,8 @@ public class Main {
         String DEFAULT_BS_IP = "127.0.0.1";
         String DEFAULT_BS_PORT = "55555";
         String DEFAULT_NODE_IP = "127.0.0.1";
-        String DEFAULT_SEND_PORT = "9005";
-        String DEFAULT_RECV_PORT = "10005";
+        String DEFAULT_SEND_PORT = "9001";
+        String DEFAULT_RECV_PORT = "10001";
         String DEFAULT_NODE_NAME = "crystal";
 
         String boostrapIP, boostrapPort, nodeIP, sendPort, recvPort, nodeName;
@@ -47,6 +47,8 @@ public class Main {
         try {
             node.start();
         } catch (IOException e) {
+            e.printStackTrace();
+        } catch (InterruptedException e) {
             e.printStackTrace();
         }
 

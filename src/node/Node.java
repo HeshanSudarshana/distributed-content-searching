@@ -1,5 +1,6 @@
 package node;
 
+import request.JoinReq;
 import request.RegReq;
 import utils.Listener;
 import utils.OpsUDP;
@@ -22,7 +23,7 @@ public class Node {
         this.nodeData = nodeData;
         //this.neighbours = neighbours;
         //this.files = files;
-        opsUDP = new OpsUDP(nodeData.getSendPort(), nodeData.getRecvPort());
+        opsUDP = new OpsUDP(nodeData.getSendPort(), nodeData.getRecvPort(), this);
         isRegistered = false;
     }
 
@@ -65,12 +66,16 @@ public class Node {
     }
 
     //starts the node functionality
-    public void start() throws IOException {
+    public void start() throws IOException, InterruptedException {
         isRunning = true;
         regToBS();
         if (neighbours != null) {
             printNeighbors();
             startListening();
+            joinNetwork();
+            //for testing purposes
+            printNeighbors();
+
         }
 
 
@@ -78,7 +83,7 @@ public class Node {
 
     //Node will start to listen for the incoming messages
     private void startListening() throws SocketException {
-        DatagramSocket receivingSocket = new DatagramSocket(Integer.parseInt(nodeData.getSendPort()));
+        DatagramSocket receivingSocket = new DatagramSocket(Integer.parseInt(nodeData.getRecvPort()));
         receivingSocket.setSoTimeout(5000);
         System.out.println(nodeData.getNodeName() + " started listening on " + nodeData.getIp() + ":" + nodeData.getRecvPort());
         Thread listenerThread = new Thread(new Listener(isRunning, receivingSocket, opsUDP));
@@ -102,5 +107,14 @@ public class Node {
             System.out.println("|" + ip + "|" + port + "|");
         }
         System.out.println("-----------------------");
+    }
+
+    private void joinNetwork() throws IOException {
+        for (NodeData neighborData : neighbours) {
+            JoinReq joinReq = new JoinReq(nodeData);
+            opsUDP.sendRequest(joinReq, neighborData);
+        }
+        //will remove all the neighbors so we can add only the neighbors who sends ACK
+        neighbours.clear();
     }
 }
