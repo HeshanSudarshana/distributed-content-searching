@@ -215,6 +215,7 @@ public class OpsUDP {
     }
 
     private void processSearch(StringTokenizer st) throws IOException {
+        node.incReceived();
         String searchersIP = st.nextToken();
         String searchersPort = st.nextToken();
         String query = "";
@@ -235,6 +236,7 @@ public class OpsUDP {
         if (!this.node.checkQueryPassed(sQuery)) {
             this.node.addQueryToHistory(sQuery);
             if (this.node.isFileExist(searchQuery)) {
+                node.incAnswered();
                 //Send SEROK to searching node
                 ArrayList<DFile> matchingFiles = this.node.getFileList(searchQuery);
                 SearchOK searchOK = new SearchOK(matchingFiles, this.node.getNodeData(), hops + 1);
@@ -307,6 +309,7 @@ public class OpsUDP {
 
     private void sendSearchRequestToNeighbours(String query, NodeData searchersNodeData, int hopCount) throws IOException {
         for (NodeData ngbNodeData : this.node.getNeighbours()) {
+            node.incForwarded();
             SearchReq searchReq = new SearchReq(query, searchersNodeData, hopCount);
             sendRequest(searchReq, ngbNodeData);
         }

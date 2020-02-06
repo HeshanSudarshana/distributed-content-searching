@@ -30,6 +30,10 @@ public class Node {
     private Scanner fileScanner;
     private ArrayList<SearchQuery> queryHistory;
 
+    private int received;
+    private int forwarded;
+    private int answered;
+
     public Node(BootstrapServer bootstrapServer, NodeData nodeData) {
         this.bootstrapServer = bootstrapServer;
         this.nodeData = nodeData;
@@ -38,6 +42,9 @@ public class Node {
         opsUDP = new OpsUDP(nodeData.getSendPort(), nodeData.getRecvPort(), this);
         isRegistered = false;
         this.queryHistory = new ArrayList<>();
+        received=0;
+        forwarded=0;
+        answered=0;
     }
 
     public NodeData getNodeData() {
@@ -176,7 +183,7 @@ public class Node {
         this.neighbours = tempNeighbors;
     }
 
-    private void readUserCommands() throws IOException {
+    private void readUserCommands() throws IOException, InterruptedException {
         while (isRunning) {
             System.out.println(">");
             BufferedReader reader = new BufferedReader(new InputStreamReader(System.in));
@@ -187,6 +194,8 @@ public class Node {
                 String firstParam = tokens.nextToken();
                 if (firstParam.equals("neighbours")) {
                     printNeighbors();
+                } else if (firstParam.toLowerCase().equals("searchlist")) {
+                    searchList();
                 } else if (firstParam.equals("search")) {
                     if (tokens.hasMoreTokens()) {
                         String searchQuery = "";
@@ -199,6 +208,11 @@ public class Node {
                     } else {
                         System.out.println("enter command with the filename");
                     }
+                } else if (firstParam.toLowerCase().equals("stats")) {
+                    System.out.println("Received = "+received);
+                    System.out.println("Forwarded = "+forwarded);
+                    System.out.println("Answered = "+answered);
+                    System.out.println("Degree = "+neighbours.size());
                 }
             } else {
                 System.out.println("invalid command");
@@ -233,12 +247,21 @@ public class Node {
         return temp;
     }
 
+    private void searchList() throws IOException, InterruptedException {
+        for (String query: queries) {
+            System.out.println("Searching for the query - " + query);
+            searchFile(query);
+        }
+    }
+
     private void searchFile(String query) throws IOException {
+        received += 1;
         SearchQuery sQuery = new SearchQuery(query, this.nodeData.getIp(), this.nodeData.getRecvPort());
         queryHistory.add(sQuery);
         if (isFileExist(query)) {
             System.out.println("File exists on current Node");
             ArrayList<DFile> searchResult = getFileList(query);
+            answered += 1;
         } else {
             System.out.println("File cannot be found on current node, sending SER request to network..");
             sendSearchRequestToNeighbours(query);
@@ -248,6 +271,7 @@ public class Node {
 
     private void sendSearchRequestToNeighbours(String query) throws IOException {
         for (NodeData ngbNodeData : neighbours) {
+            forwarded += 1;
             SearchReq searchReq = new SearchReq(query, this.nodeData, 0);
             opsUDP.sendRequest(searchReq, ngbNodeData);
         }
@@ -263,7 +287,7 @@ public class Node {
         return false;
     }
 
-    private void refreshHistory() {
+    private synchronized void refreshHistory() {
         ArrayList<SearchQuery> temp = new ArrayList<>();
         for (SearchQuery query : queryHistory) {
             if (System.currentTimeMillis() - query.getParsedTime() < 5000) {
@@ -275,5 +299,41 @@ public class Node {
 
     public void addQueryToHistory(SearchQuery query) {
         this.queryHistory.add(query);
+    }
+
+    public void incReceived() {
+        received += 1;
+    }
+
+    public void incForwarded() {
+        forwarded += 1;
+    }
+
+    public void incAnswered() {
+        answered += 1;
+    }
+
+    public int getReceived() {
+        return received;
+    }
+
+    public void setReceived(int received) {
+        this.received = received;
+    }
+
+    public int getForwarded() {
+        return forwarded;
+    }
+
+    public void setForwarded(int forwarded) {
+        this.forwarded = forwarded;
+    }
+
+    public int getAnswered() {
+        return answered;
+    }
+
+    public void setAnswered(int answered) {
+        this.answered = answered;
     }
 }
