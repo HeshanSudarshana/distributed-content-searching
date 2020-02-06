@@ -5,6 +5,7 @@ import node.Node;
 import node.NodeData;
 
 import java.io.IOException;
+import java.net.BindException;
 
 /**
  * Created by Oshada on 2020-02-05.
@@ -46,6 +47,8 @@ public class Main {
         Node node = new Node(bs, nodeData);
         try {
             node.start();
+        } catch (BindException e) {
+            System.out.println("specified port is used by another process, please use a different port");
         } catch (IOException e) {
             e.printStackTrace();
         } catch (InterruptedException e) {
