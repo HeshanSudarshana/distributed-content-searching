@@ -3,6 +3,7 @@ package utils;
 import node.Node;
 import node.NodeData;
 import request.JoinReq;
+import request.LeaveReq;
 import request.Request;
 import request.SearchReq;
 import response.JoinOK;
@@ -160,10 +161,14 @@ public class OpsUDP {
             } else if (command.equals("LEAVE")) {
                 System.out.println("LEAVE message received " + msg);
                 processLeave(st);
+            } else if (command.equals("LEAVEOK")) {
+                System.out.println("LEAVEOK message received " + msg);
+
             }
         }
 
     }
+
 
     private void processUNROK(StringTokenizer st) {
         String value = st.nextToken();
@@ -352,5 +357,42 @@ public class OpsUDP {
         return isSuccess;
     }
 
-
+    public void leaveNode(LeaveReq leaveReq, NodeData nodeData) throws IOException {
+        System.out.println("Sent LEAVE request to " + nodeData.getIp() + ":" + nodeData.getRecvPort());
+        DatagramSocket socket = new DatagramSocket(Integer.parseInt(sendPort));
+        InetAddress receivingNodeAddress = InetAddress.getByName(nodeData.getIp());
+        byte[] buffer = leaveReq.getRequest().getBytes();
+        DatagramPacket packet = new DatagramPacket(buffer, buffer.length, receivingNodeAddress, Integer.parseInt(nodeData.getRecvPort()));
+        socket.send(packet);
+        buffer = new byte[65536];
+        String response;
+        DatagramPacket incoming = new DatagramPacket(buffer, buffer.length);
+        socket.setSoTimeout(2000);
+        try {
+            socket.receive(incoming);
+            byte[] data = incoming.getData();
+            response = new String(data, 0, incoming.getLength());
+            if (response != null) {
+                socket.close();
+                StringTokenizer st = new StringTokenizer(response, " ");
+                st.nextToken();
+                if (st.nextToken().equals("LEAVEOK")) {
+                    System.out.println("LEAVEOK message received from " + nodeData.getIp() + ":" + nodeData.getRecvPort());
+                    removeNeighbour(nodeData);
+                } else {
+                    System.out.println("invalid response: " + response);
+                }
+                socket.close();
+            } else {
+                System.out.println("Incorrect response from " + nodeData.getIp() + ":" + nodeData.getRecvPort());
+                socket.close();
+            }
+        } catch (SocketTimeoutException ex) {
+            System.out.println("No response from " + nodeData.getIp() + ":" + nodeData.getRecvPort());
+            socket.close();
+        } catch (IOException e) {
+            socket.close();
+            e.printStackTrace();
+        }
+    }
 }

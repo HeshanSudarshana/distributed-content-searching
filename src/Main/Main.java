@@ -44,8 +44,8 @@ public class Main {
 
         BootstrapServer bs = new BootstrapServer(boostrapIP, boostrapPort);
         NodeData nodeData = new NodeData(nodeName, nodeIP, sendPort, recvPort);
-        Node node = new Node(bs, nodeData);
         try {
+            Node node = new Node(bs, nodeData);
             node.start();
         } catch (BindException e) {
             System.out.println("specified port is used by another process, please use a different port");

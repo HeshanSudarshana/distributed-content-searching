@@ -27,8 +27,10 @@ public class Node {
     private boolean isRegistered, isRunning;
     private Scanner fileScanner;
     private ArrayList<SearchQuery> queryHistory;
+    private Listener listener;
+    private DatagramSocket receivingSocket;
 
-    public Node(BootstrapServer bootstrapServer, NodeData nodeData) {
+    public Node(BootstrapServer bootstrapServer, NodeData nodeData) throws SocketException {
         this.bootstrapServer = bootstrapServer;
         this.nodeData = nodeData;
         generateFileList();
@@ -36,6 +38,7 @@ public class Node {
         opsUDP = new OpsUDP(nodeData.getSendPort(), nodeData.getRecvPort(), this);
         isRegistered = false;
         this.queryHistory = new ArrayList<>();
+
     }
 
     public NodeData getNodeData() {
@@ -134,10 +137,11 @@ public class Node {
 
     //Node will start to listen for the incoming messages
     private void startListening() throws SocketException {
-        DatagramSocket receivingSocket = new DatagramSocket(Integer.parseInt(nodeData.getRecvPort()));
-        receivingSocket.setSoTimeout(5000);
         System.out.println(nodeData.getNodeName() + " started listening on " + nodeData.getIp() + ":" + nodeData.getRecvPort());
-        Thread listenerThread = new Thread(new Listener(isRunning, receivingSocket, opsUDP));
+        receivingSocket = new DatagramSocket(Integer.parseInt(nodeData.getRecvPort()));
+        receivingSocket.setSoTimeout(5000);
+        this.listener = new Listener(isRunning, receivingSocket, opsUDP);
+        Thread listenerThread = new Thread(listener);
         listenerThread.start();
     }
 
@@ -282,6 +286,7 @@ public class Node {
         notifyLeaving();
         UnregReq unregReq = new UnregReq(this.nodeData.getIp(), this.getNodeData().getRecvPort(), this.getNodeData().getNodeName());
         opsUDP.unregisterNode(unregReq, this.bootstrapServer.getIp(), this.bootstrapServer.getPort());
+
     }
 
     private void notifyLeaving() throws IOException {
