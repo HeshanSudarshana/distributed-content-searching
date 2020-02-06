@@ -153,7 +153,7 @@ public class OpsUDP {
                 System.out.println("SER message received " + msg);
                 processSearch(st);
             } else if (command.equals("SEROK")) {
-                System.out.println("SEARCHOK message received " + msg);
+                System.out.println("SEARCHOK message received " + msg + " Timestamp:" + System.currentTimeMillis());
                 //add the code here to display and stop the result
             }
         }

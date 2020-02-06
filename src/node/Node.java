@@ -26,7 +26,7 @@ public class Node {
     private ArrayList<DFile> files;
     private ArrayList<String> queries;
     private OpsUDP opsUDP;
-    private boolean isRegistered, isRunning, isWaitingSrchRslts;
+    private boolean isRegistered, isRunning;
     private Scanner fileScanner;
     private ArrayList<SearchQuery> queryHistory;
 
@@ -37,7 +37,6 @@ public class Node {
         generateQueryList();
         opsUDP = new OpsUDP(nodeData.getSendPort(), nodeData.getRecvPort(), this);
         isRegistered = false;
-        this.isWaitingSrchRslts = false;
         this.queryHistory = new ArrayList<>();
     }
 
@@ -194,7 +193,8 @@ public class Node {
                         while (tokens.hasMoreTokens()) {
                             searchQuery += tokens.nextToken() + " ";
                         }
-                        System.out.println("started a search for " + searchQuery);
+
+                        System.out.println("started a search for " + searchQuery + ", Timestamp:" + System.currentTimeMillis());
                         searchFile(searchQuery.trim());
                     } else {
                         System.out.println("enter command with the filename");
@@ -237,13 +237,10 @@ public class Node {
         SearchQuery sQuery = new SearchQuery(query, this.nodeData.getIp(), this.nodeData.getRecvPort());
         queryHistory.add(sQuery);
         if (isFileExist(query)) {
-            isWaitingSrchRslts = true;
             System.out.println("File exists on current Node");
             ArrayList<DFile> searchResult = getFileList(query);
-            isWaitingSrchRslts = false;
         } else {
             System.out.println("File cannot be found on current node, sending SER request to network..");
-            isWaitingSrchRslts = true;
             sendSearchRequestToNeighbours(query);
         }
 
