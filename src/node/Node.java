@@ -2,6 +2,7 @@ package node;
 
 import request.JoinReq;
 import request.RegReq;
+import utils.DFile;
 import utils.Listener;
 import utils.OpsUDP;
 
@@ -20,7 +21,7 @@ public class Node {
     private BootstrapServer bootstrapServer;
     private NodeData nodeData;
     private ArrayList<NodeData> neighbours;
-    private ArrayList<String> files;
+    private ArrayList<DFile> files;
     private ArrayList<String> queries;
     private OpsUDP opsUDP;
     private boolean isRegistered, isRunning;
@@ -59,25 +60,26 @@ public class Node {
         this.neighbours = neighbours;
     }
 
-    public ArrayList<String> getFiles() {
+    public ArrayList<DFile> getFiles() {
         return files;
     }
 
-    public void setFiles(ArrayList<String> files) {
+    public void setFiles(ArrayList<DFile> files) {
         this.files = files;
     }
 
     public void generateFileList() {
         // reading the file and adding it to files
         files = new ArrayList<>();
-        ArrayList <String> tempFiles = new ArrayList<>();
+        ArrayList<DFile> tempFiles = new ArrayList<>();
         try {
             fileScanner = new Scanner(new File(FILE_LIST_PATH));
         } catch (FileNotFoundException e) {
             System.out.println("File not found!");
         }
         while (fileScanner.hasNext()) {
-            tempFiles.add(fileScanner.nextLine());
+            DFile file = new DFile(fileScanner.nextLine());
+            tempFiles.add(file);
         }
         fileScanner.close();
 
@@ -99,7 +101,7 @@ public class Node {
         try {
             fileScanner = new Scanner(new File(QUERY_LIST_PATH));
         } catch (FileNotFoundException e) {
-            System.out.println("File not found!");
+            System.out.println("DFile not found!");
         }
         while (fileScanner.hasNext()) {
             queries.add(fileScanner.nextLine());
@@ -188,6 +190,7 @@ public class Node {
                             searchQuery += tokens.nextToken() + " ";
                         }
                         System.out.println("started a search for " + searchQuery);
+                        searchFile(searchQuery.trim());
                     } else {
                         System.out.println("enter command with the filename");
                     }
@@ -201,8 +204,25 @@ public class Node {
 
     private void printFileList() {
         System.out.println("Files available on this node");
-        for (String file : files) {
-            System.out.println(">" + file);
+        for (DFile file : files) {
+            System.out.println(">" + file.getFileName());
+        }
+    }
+
+    public boolean isFileExist(String query) {
+        for (DFile file : files) {
+            if (file.isMatch(query)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private void searchFile(String query) {
+        if (isFileExist(query)) {
+            System.out.println("File exists on current Node");
+        } else {
+            System.out.println("File cannot be found on current node, sending SER request to network..");
         }
     }
 }
