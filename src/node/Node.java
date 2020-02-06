@@ -1,9 +1,17 @@
 package node;
 
+<<<<<<< HEAD
 import request.JoinReq;
 import request.RegReq;
 import request.SearchReq;
 import utils.*;
+=======
+import request.*;
+import utils.DFile;
+import utils.Listener;
+import utils.OpsUDP;
+import utils.SearchQuery;
+>>>>>>> d653f74b76f7825e53aa04876a9078ef2f6bee2e
 
 import java.io.*;
 import java.net.DatagramSocket;
@@ -26,10 +34,16 @@ public class Node {
     private boolean isRegistered, isRunning;
     private Scanner fileScanner;
     private ArrayList<SearchQuery> queryHistory;
+    private Listener listener;
+    private DatagramSocket receivingSocket;
 
+<<<<<<< HEAD
     protected FTPServer ftp_server;
 
     public Node(BootstrapServer bootstrapServer, NodeData nodeData) throws Exception {
+=======
+    public Node(BootstrapServer bootstrapServer, NodeData nodeData) throws SocketException {
+>>>>>>> d653f74b76f7825e53aa04876a9078ef2f6bee2e
         this.bootstrapServer = bootstrapServer;
         this.nodeData = nodeData;
         generateFileList();
@@ -38,6 +52,7 @@ public class Node {
         isRegistered = false;
         this.queryHistory = new ArrayList<>();
 
+<<<<<<< HEAD
         this.ftp_server = new FTPServer(
                 Integer.parseInt(nodeData.getRecvPort()) + Constants.FTP_PORT_OFFSET,
                 nodeData.getNodeName()
@@ -45,6 +60,8 @@ public class Node {
 
         Thread t = new Thread(ftp_server);
         t.start();
+=======
+>>>>>>> d653f74b76f7825e53aa04876a9078ef2f6bee2e
     }
 
     public NodeData getNodeData() {
@@ -143,10 +160,11 @@ public class Node {
 
     //Node will start to listen for the incoming messages
     private void startListening() throws SocketException {
-        DatagramSocket receivingSocket = new DatagramSocket(Integer.parseInt(nodeData.getRecvPort()));
-        receivingSocket.setSoTimeout(5000);
         System.out.println(nodeData.getNodeName() + " started listening on " + nodeData.getIp() + ":" + nodeData.getRecvPort());
-        Thread listenerThread = new Thread(new Listener(isRunning, receivingSocket, opsUDP));
+        receivingSocket = new DatagramSocket(Integer.parseInt(nodeData.getRecvPort()));
+        receivingSocket.setSoTimeout(5000);
+        this.listener = new Listener(isRunning, receivingSocket, opsUDP);
+        Thread listenerThread = new Thread(listener);
         listenerThread.start();
     }
 
@@ -206,6 +224,7 @@ public class Node {
                     } else {
                         System.out.println("enter command with the filename");
                     }
+<<<<<<< HEAD
                 } else if (firstParam.equals("download"))
                 {
                     int num_of_parameters = 0;
@@ -248,6 +267,10 @@ public class Node {
                     }
 
                     //TODO handle when only file name provided
+=======
+                } else if (firstParam.equals("leave")) {
+                    leaveNetwork();
+>>>>>>> d653f74b76f7825e53aa04876a9078ef2f6bee2e
                 }
             } else {
                 System.out.println("invalid command");
@@ -326,6 +349,7 @@ public class Node {
         this.queryHistory.add(query);
     }
 
+<<<<<<< HEAD
     public void getFile(String ip, int port, String filename) {
 
         try {
@@ -342,4 +366,21 @@ public class Node {
             e.printStackTrace();
         }
     }
+=======
+
+    public void leaveNetwork() throws IOException {
+        notifyLeaving();
+        UnregReq unregReq = new UnregReq(this.nodeData.getIp(), this.getNodeData().getRecvPort(), this.getNodeData().getNodeName());
+        opsUDP.unregisterNode(unregReq, this.bootstrapServer.getIp(), this.bootstrapServer.getPort());
+        System.exit(0);
+    }
+
+    private void notifyLeaving() throws IOException {
+        for (NodeData node : this.neighbours) {
+            LeaveReq leaveReq = new LeaveReq(this.nodeData);
+            opsUDP.sendRequest(leaveReq, node);
+        }
+    }
+
+>>>>>>> d653f74b76f7825e53aa04876a9078ef2f6bee2e
 }
