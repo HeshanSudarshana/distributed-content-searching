@@ -4,6 +4,7 @@ import node.Node;
 import node.NodeData;
 import request.JoinReq;
 import request.Request;
+import request.SearchReq;
 import response.JoinOK;
 import response.Response;
 import response.SearchOK;
@@ -214,7 +215,6 @@ public class OpsUDP {
     }
 
     private void processSearch(StringTokenizer st) throws IOException {
-        boolean isValid;
         String searchersIP = st.nextToken();
         String searchersPort = st.nextToken();
         String query = "";
@@ -231,13 +231,17 @@ public class OpsUDP {
         }
         int hops = Integer.parseInt(st.nextToken());
         String searchQuery = query.substring(1, query.length());
-        if (this.node.isFileExist(searchQuery)) {
-            //Send SEROK to searching node
-            ArrayList<DFile> matchingFiles = this.node.getFileList(searchQuery);
-            SearchOK searchOK = new SearchOK(matchingFiles, this.node.getNodeData(), hops + 1);
-            sendResponse(searchOK, new NodeData(searchersIP, searchersPort));
-        } else {
-            //imcrease the hop count and send SER request to other nodes
+        SearchQuery sQuery = new SearchQuery(searchQuery, searchersIP, searchersPort);
+        if (!this.node.checkQueryPassed(sQuery)) {
+            this.node.addQueryToHistory(sQuery);
+            if (this.node.isFileExist(searchQuery)) {
+                //Send SEROK to searching node
+                ArrayList<DFile> matchingFiles = this.node.getFileList(searchQuery);
+                SearchOK searchOK = new SearchOK(matchingFiles, this.node.getNodeData(), hops + 1);
+                sendResponse(searchOK, new NodeData(searchersIP, searchersPort));
+            } else {
+                sendSearchRequestToNeighbours(searchQuery, new NodeData(searchersIP, searchersPort), hops + 1);
+            }
         }
 
     }
@@ -298,6 +302,13 @@ public class OpsUDP {
             System.out.println("No response from " + nodeData.getIp() + ":" + nodeData.getIp());
             socket.close();
             return false;
+        }
+    }
+
+    private void sendSearchRequestToNeighbours(String query, NodeData searchersNodeData, int hopCount) throws IOException {
+        for (NodeData ngbNodeData : this.node.getNeighbours()) {
+            SearchReq searchReq = new SearchReq(query, searchersNodeData, hopCount);
+            sendRequest(searchReq, ngbNodeData);
         }
     }
 

@@ -6,6 +6,7 @@ import request.SearchReq;
 import utils.DFile;
 import utils.Listener;
 import utils.OpsUDP;
+import utils.SearchQuery;
 
 import java.io.*;
 import java.net.DatagramSocket;
@@ -27,6 +28,7 @@ public class Node {
     private OpsUDP opsUDP;
     private boolean isRegistered, isRunning, isWaitingSrchRslts;
     private Scanner fileScanner;
+    private ArrayList<SearchQuery> queryHistory;
 
     public Node(BootstrapServer bootstrapServer, NodeData nodeData) {
         this.bootstrapServer = bootstrapServer;
@@ -36,6 +38,7 @@ public class Node {
         opsUDP = new OpsUDP(nodeData.getSendPort(), nodeData.getRecvPort(), this);
         isRegistered = false;
         this.isWaitingSrchRslts = false;
+        this.queryHistory = new ArrayList<>();
     }
 
     public NodeData getNodeData() {
@@ -231,6 +234,8 @@ public class Node {
     }
 
     private void searchFile(String query) throws IOException {
+        SearchQuery sQuery = new SearchQuery(query, this.nodeData.getIp(), this.nodeData.getRecvPort());
+        queryHistory.add(sQuery);
         if (isFileExist(query)) {
             isWaitingSrchRslts = true;
             System.out.println("File exists on current Node");
@@ -240,8 +245,8 @@ public class Node {
             System.out.println("File cannot be found on current node, sending SER request to network..");
             isWaitingSrchRslts = true;
             sendSearchRequestToNeighbours(query);
-
         }
+
     }
 
     private void sendSearchRequestToNeighbours(String query) throws IOException {
@@ -249,5 +254,29 @@ public class Node {
             SearchReq searchReq = new SearchReq(query, this.nodeData, 0);
             opsUDP.sendRequest(searchReq, ngbNodeData);
         }
+    }
+
+    public boolean checkQueryPassed(SearchQuery searchQuery) {
+        refreshHistory();
+        for (SearchQuery query : queryHistory) {
+            if (query.isEqual(searchQuery) && (searchQuery.getParsedTime() - query.getParsedTime()) < 5000) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private void refreshHistory() {
+        ArrayList<SearchQuery> temp = new ArrayList<>();
+        for (SearchQuery query : queryHistory) {
+            if (System.currentTimeMillis() - query.getParsedTime() < 5000) {
+                temp.add(query);
+            }
+        }
+        queryHistory = temp;
+    }
+
+    public void addQueryToHistory(SearchQuery query) {
+        this.queryHistory.add(query);
     }
 }
