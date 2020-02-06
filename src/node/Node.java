@@ -1,8 +1,6 @@
 package node;
 
-import request.JoinReq;
-import request.RegReq;
-import request.SearchReq;
+import request.*;
 import utils.DFile;
 import utils.Listener;
 import utils.OpsUDP;
@@ -199,6 +197,8 @@ public class Node {
                     } else {
                         System.out.println("enter command with the filename");
                     }
+                } else if (firstParam.equals("leave")) {
+                    leaveNetwork();
                 }
             } else {
                 System.out.println("invalid command");
@@ -276,4 +276,19 @@ public class Node {
     public void addQueryToHistory(SearchQuery query) {
         this.queryHistory.add(query);
     }
+
+
+    public void leaveNetwork() throws IOException {
+        notifyLeaving();
+        UnregReq unregReq = new UnregReq(this.nodeData.getIp(), this.getNodeData().getRecvPort(), this.getNodeData().getNodeName());
+        opsUDP.unregisterNode(unregReq, this.bootstrapServer.getIp(), this.bootstrapServer.getPort());
+    }
+
+    private void notifyLeaving() throws IOException {
+        for (NodeData node : this.neighbours) {
+            LeaveReq leaveReq = new LeaveReq(this.nodeData);
+            opsUDP.sendRequest(leaveReq, node);
+        }
+    }
+
 }

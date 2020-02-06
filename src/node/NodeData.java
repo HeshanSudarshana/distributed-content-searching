@@ -49,4 +49,12 @@ public class NodeData {
     public void setRecvPort(String recvPort) {
         this.recvPort = recvPort;
     }
+
+    public boolean isEqual(NodeData nodeData) {
+        if (this.ip.equals(nodeData.getIp()) && this.recvPort.equals(nodeData.getRecvPort())) {
+            return true;
+        } else {
+            return false;
+        }
+    }
 }

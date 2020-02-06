@@ -6,6 +6,7 @@ import request.JoinReq;
 import request.Request;
 import request.SearchReq;
 import response.JoinOK;
+import response.LeaveOK;
 import response.Response;
 import response.SearchOK;
 
@@ -98,7 +99,7 @@ public class OpsUDP {
     }
 
     public void unregisterNode(Request request, String receiversIP, String receivingPort) throws IOException {
-        System.out.println("Sent a " + request.getType() + " request to " + receiversIP + " on " + receivingPort);
+        System.out.println("Sent UNREG request to boostrap server");
         DatagramSocket socket = new DatagramSocket(Integer.parseInt(sendPort));
         InetAddress receivingNodeAddress = InetAddress.getByName(receiversIP);
         byte[] buffer = request.getRequest().getBytes();
@@ -117,6 +118,7 @@ public class OpsUDP {
                 StringTokenizer st = new StringTokenizer(response, " ");
                 st.nextToken();
                 if (st.nextToken().equals("UNROK")) {
+                    System.out.println("UNROK message received from boostrap");
                     processUNROK(st);
                 } else {
                     System.out.println("invalid response: " + response);
@@ -154,7 +156,10 @@ public class OpsUDP {
                 processSearch(st);
             } else if (command.equals("SEROK")) {
                 System.out.println("SEARCHOK message received " + msg + " Timestamp:" + System.currentTimeMillis());
-                //add the code here to display and stop the result
+                //add the code here to display the result
+            } else if (command.equals("LEAVE")) {
+                System.out.println("LEAVE message received " + msg);
+                processLeave(st);
             }
         }
 
@@ -162,7 +167,7 @@ public class OpsUDP {
 
     private void processUNROK(StringTokenizer st) {
         String value = st.nextToken();
-        if (value.equals(0)) {
+        if (value.equals("0")) {
             System.out.println("unregistered successfully");
         } else {
             System.out.println("Failed Unregistering the node");
@@ -310,6 +315,41 @@ public class OpsUDP {
             SearchReq searchReq = new SearchReq(query, searchersNodeData, hopCount);
             sendRequest(searchReq, ngbNodeData);
         }
+    }
+
+    private void processLeave(StringTokenizer st) throws IOException {
+        boolean isSuccess = true;
+        NodeData nodeData = null;
+        try {
+            nodeData = new NodeData(st.nextToken(), st.nextToken());
+        } catch (Exception e) {
+            isSuccess = false;
+        }
+        if (nodeData != null) {
+            if (removeNeighbour(nodeData)) {
+                //send leave ok with success
+                LeaveOK leaveOK = new LeaveOK(0);
+                sendResponse(leaveOK, nodeData);
+            } else {
+                //send leave ok with failed
+                LeaveOK leaveOK = new LeaveOK(9999);
+                sendResponse(leaveOK, nodeData);
+            }
+        }
+    }
+
+    private boolean removeNeighbour(NodeData data) {
+        boolean isSuccess = false;
+        ArrayList<NodeData> temp = new ArrayList<>();
+        for (NodeData nodeData : this.node.getNeighbours()) {
+            if (nodeData.isEqual(data)) {
+                isSuccess = true;
+            } else {
+                temp.add(nodeData);
+            }
+        }
+        this.node.setNeighbours(temp);
+        return isSuccess;
     }
 
 
