@@ -47,7 +47,12 @@ public class Main {
 
         BootstrapServer bs = new BootstrapServer(boostrapIP, boostrapPort);
         NodeData nodeData = new NodeData(nodeName, nodeIP, sendPort, recvPort);
-        Node node = new Node(bs, nodeData);
+        Node node = null;
+        try {
+            node = new Node(bs, nodeData);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
         try {
             node.start();
         } catch (BindException e) {
