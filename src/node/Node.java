@@ -5,14 +5,13 @@ import request.RegReq;
 import utils.Listener;
 import utils.OpsUDP;
 
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.IOException;
+import java.io.*;
 import java.net.DatagramSocket;
 import java.net.SocketException;
 import java.util.ArrayList;
 import java.util.Random;
 import java.util.Scanner;
+import java.util.StringTokenizer;
 
 public class Node {
     private static String FILE_LIST_PATH = "./resources/FileNames.txt";
@@ -122,6 +121,7 @@ public class Node {
             joinNetwork();
             printNeighbors();
             startListening();
+            readUserCommands();
         }
 
 
@@ -167,5 +167,31 @@ public class Node {
             }
         }
         this.neighbours = tempNeighbors;
+    }
+
+    private void readUserCommands() throws IOException {
+        while (isRunning) {
+            System.out.println(">");
+            BufferedReader reader = new BufferedReader(new InputStreamReader(System.in));
+            String command = reader.readLine();
+            StringTokenizer tokens = new StringTokenizer(command, " ");
+            int tokenCount = tokens.countTokens();
+            if (tokenCount <= 2 && tokenCount > 0) {
+                String firstParam = tokens.nextToken();
+                if (firstParam.equals("neighbours")) {
+                    printNeighbors();
+                } else if (firstParam.equals("search")) {
+                    if (tokens.hasMoreTokens()) {
+                        String searchQuery = tokens.nextToken();
+                        System.out.println("started a search for " + searchQuery);
+                    } else {
+                        System.out.println("enter command with the filename");
+                    }
+                }
+            } else {
+                System.out.println("invalid command");
+            }
+        }
+
     }
 }
