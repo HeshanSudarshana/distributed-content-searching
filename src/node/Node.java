@@ -1,17 +1,8 @@
 package node;
 
-<<<<<<< HEAD
-import request.JoinReq;
-import request.RegReq;
-import request.SearchReq;
-import utils.*;
-=======
+
 import request.*;
-import utils.DFile;
-import utils.Listener;
-import utils.OpsUDP;
-import utils.SearchQuery;
->>>>>>> d653f74b76f7825e53aa04876a9078ef2f6bee2e
+import utils.*;
 
 import java.io.*;
 import java.net.DatagramSocket;
@@ -24,7 +15,7 @@ import java.util.StringTokenizer;
 public class Node {
     private static String FILE_LIST_PATH = "./resources/FileNames.txt";
     private static String QUERY_LIST_PATH = "./resources/Queries.txt";
-
+    protected FTPServer ftp_server;
     private BootstrapServer bootstrapServer;
     private NodeData nodeData;
     private ArrayList<NodeData> neighbours;
@@ -37,13 +28,7 @@ public class Node {
     private Listener listener;
     private DatagramSocket receivingSocket;
 
-<<<<<<< HEAD
-    protected FTPServer ftp_server;
-
     public Node(BootstrapServer bootstrapServer, NodeData nodeData) throws Exception {
-=======
-    public Node(BootstrapServer bootstrapServer, NodeData nodeData) throws SocketException {
->>>>>>> d653f74b76f7825e53aa04876a9078ef2f6bee2e
         this.bootstrapServer = bootstrapServer;
         this.nodeData = nodeData;
         generateFileList();
@@ -52,7 +37,6 @@ public class Node {
         isRegistered = false;
         this.queryHistory = new ArrayList<>();
 
-<<<<<<< HEAD
         this.ftp_server = new FTPServer(
                 Integer.parseInt(nodeData.getRecvPort()) + Constants.FTP_PORT_OFFSET,
                 nodeData.getNodeName()
@@ -60,8 +44,6 @@ public class Node {
 
         Thread t = new Thread(ftp_server);
         t.start();
-=======
->>>>>>> d653f74b76f7825e53aa04876a9078ef2f6bee2e
     }
 
     public NodeData getNodeData() {
@@ -224,7 +206,6 @@ public class Node {
                     } else {
                         System.out.println("enter command with the filename");
                     }
-<<<<<<< HEAD
                 } else if (firstParam.equals("download"))
                 {
                     int num_of_parameters = 0;
@@ -267,10 +248,8 @@ public class Node {
                     }
 
                     //TODO handle when only file name provided
-=======
                 } else if (firstParam.equals("leave")) {
                     leaveNetwork();
->>>>>>> d653f74b76f7825e53aa04876a9078ef2f6bee2e
                 }
             } else {
                 System.out.println("invalid command");
@@ -349,7 +328,6 @@ public class Node {
         this.queryHistory.add(query);
     }
 
-<<<<<<< HEAD
     public void getFile(String ip, int port, String filename) {
 
         try {
@@ -366,7 +344,6 @@ public class Node {
             e.printStackTrace();
         }
     }
-=======
 
     public void leaveNetwork() throws IOException {
         notifyLeaving();
@@ -382,5 +359,4 @@ public class Node {
         }
     }
 
->>>>>>> d653f74b76f7825e53aa04876a9078ef2f6bee2e
 }

@@ -17,8 +17,8 @@ public class Main {
         String DEFAULT_BS_IP = "127.0.0.1";
         String DEFAULT_BS_PORT = "55555";
         String DEFAULT_NODE_IP = "127.0.0.1";
-        String DEFAULT_SEND_PORT = "9002";
-        String DEFAULT_RECV_PORT = "10002";
+        String DEFAULT_SEND_PORT = "9001";
+        String DEFAULT_RECV_PORT = "10001";
         String DEFAULT_NODE_NAME = "crystal";
 
         String boostrapIP, boostrapPort, nodeIP, sendPort, recvPort, nodeName;
@@ -47,15 +47,7 @@ public class Main {
 
         BootstrapServer bs = new BootstrapServer(boostrapIP, boostrapPort);
         NodeData nodeData = new NodeData(nodeName, nodeIP, sendPort, recvPort);
-<<<<<<< HEAD
-        Node node = null;
-        try {
-            node = new Node(bs, nodeData);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-=======
->>>>>>> d653f74b76f7825e53aa04876a9078ef2f6bee2e
+
         try {
             Node node = new Node(bs, nodeData);
             node.start();
@@ -64,6 +56,8 @@ public class Main {
         } catch (IOException e) {
             e.printStackTrace();
         } catch (InterruptedException e) {
+            e.printStackTrace();
+        } catch (Exception e) {
             e.printStackTrace();
         }
 
