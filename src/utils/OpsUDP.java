@@ -155,6 +155,31 @@ public class OpsUDP {
 
     }
 
+    private void processSearch(StringTokenizer st) {
+        boolean isValid;
+
+        String uuid = st.nextToken();
+        String ip = st.nextToken();
+        String port = st.nextToken();
+
+        String query = "";
+        while (st.hasMoreTokens()) {
+            String str = st.nextToken();
+            Character lastChar = str.charAt(str.length()-1);
+            if (lastChar.equals('"')) {
+                str = str.substring(0, str.length()-1);
+                query += str;
+                break;
+            } else {
+                query += str + " ";
+            }
+        }
+
+        int hops = Integer.parseInt(st.nextToken());
+        String searchQuery = query.substring(1, query.length());
+        // TODO: complete from here
+    }
+
     //this checks whether a node already exists
     private boolean isNodeExists(String Ip, String port) {
         for (NodeData node : node.getNeighbours()) {
