@@ -13,9 +13,9 @@ public class JoinOK extends Response {
 
     public String getResponse() {
         if (result == 0) {
-            return "0014 JoinOK 0";
+            return "0014 JOINOK 0";
         } else {
-            return "0017 JoinOK 9999";
+            return "0017 JOINOK 9999";
         }
 
     }

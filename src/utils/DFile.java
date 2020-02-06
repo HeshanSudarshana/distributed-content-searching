@@ -19,9 +19,13 @@ public class DFile {
     //This will check whether the file matches the given query
     public boolean isMatch(String query) {
         StringTokenizer tokens = new StringTokenizer(this.fileName, " ");
-        while (tokens.hasMoreTokens()) {
-            if (tokens.nextToken().equalsIgnoreCase(query)) {
-                return true;
+        StringTokenizer queryTokens = new StringTokenizer(query, " ");
+        while (queryTokens.hasMoreTokens()) {
+            String nextTerm = queryTokens.nextToken();
+            while (tokens.hasMoreTokens()) {
+                if (tokens.nextToken().equalsIgnoreCase(nextTerm)) {
+                    return true;
+                }
             }
         }
         return false;

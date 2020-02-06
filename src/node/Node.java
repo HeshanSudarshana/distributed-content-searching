@@ -2,6 +2,7 @@ package node;
 
 import request.JoinReq;
 import request.RegReq;
+import request.SearchReq;
 import utils.DFile;
 import utils.Listener;
 import utils.OpsUDP;
@@ -24,7 +25,7 @@ public class Node {
     private ArrayList<DFile> files;
     private ArrayList<String> queries;
     private OpsUDP opsUDP;
-    private boolean isRegistered, isRunning;
+    private boolean isRegistered, isRunning, isWaitingSrchRslts;
     private Scanner fileScanner;
 
     public Node(BootstrapServer bootstrapServer, NodeData nodeData) {
@@ -34,6 +35,7 @@ public class Node {
         generateQueryList();
         opsUDP = new OpsUDP(nodeData.getSendPort(), nodeData.getRecvPort(), this);
         isRegistered = false;
+        this.isWaitingSrchRslts = false;
     }
 
     public NodeData getNodeData() {
@@ -122,8 +124,8 @@ public class Node {
         regToBS();
         if (neighbours != null) {
             joinNetwork();
-            printNeighbors();
             startListening();
+            printNeighbors();
             readUserCommands();
         }
 
@@ -218,11 +220,34 @@ public class Node {
         return false;
     }
 
-    private void searchFile(String query) {
+    private ArrayList<DFile> getFileList(String query) {
+        ArrayList<DFile> temp = new ArrayList<>();
+        for (DFile file : files) {
+            if (file.isMatch(query)) {
+                temp.add(file);
+            }
+        }
+        return temp;
+    }
+
+    private void searchFile(String query) throws IOException {
         if (isFileExist(query)) {
+            isWaitingSrchRslts = true;
             System.out.println("File exists on current Node");
+            ArrayList<DFile> searchResult = getFileList(query);
+            isWaitingSrchRslts = false;
         } else {
             System.out.println("File cannot be found on current node, sending SER request to network..");
+            isWaitingSrchRslts = true;
+            sendSearchRequestToNeighbours(query);
+
+        }
+    }
+
+    private void sendSearchRequestToNeighbours(String query) throws IOException {
+        for (NodeData ngbNodeData : neighbours) {
+            SearchReq searchReq = new SearchReq(query, this.nodeData, 0);
+            opsUDP.sendRequest(searchReq, ngbNodeData);
         }
     }
 }

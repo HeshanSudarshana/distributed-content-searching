@@ -144,10 +144,12 @@ public class OpsUDP {
             if (command.equals("JOIN")) {
                 System.out.println("JOIN message received " + msg);
                 processJOIN(st);
-            } else if (command.equals("JoinOK")) {
+            } else if (command.equals("JOINOK")) {
                 System.out.println("JOINOK message received " + msg);
                 processJOINOK(st, incomingIP, port);
-
+            } else if (command.equals("SER")) {
+                System.out.println("SER message received " + msg);
+                processSearch(st);
             }
         }
 
@@ -209,7 +211,6 @@ public class OpsUDP {
     private void processSearch(StringTokenizer st) {
         boolean isValid;
 
-        String uuid = st.nextToken();
         String ip = st.nextToken();
         String port = st.nextToken();
 
@@ -270,7 +271,7 @@ public class OpsUDP {
             try {
                 StringTokenizer st = new StringTokenizer(response, " ");
                 st.nextToken();
-                if (st.nextToken().equals("JoinOK")) {
+                if (st.nextToken().equals("JOINOK")) {
                     if (st.nextToken().equals("0")) {
                         return true;
                     } else {
@@ -289,7 +290,6 @@ public class OpsUDP {
             return false;
         }
     }
-
 
 
 }
