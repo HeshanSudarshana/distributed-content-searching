@@ -32,7 +32,7 @@ public class OpsUDP {
     //this method will register the current Node in boostrap and return the received nodeData from BS
     public ArrayList<NodeData> RegisterNode(Request request, String receiversIP, String receivingPort) throws IOException {
         System.out.println("Sent a " + request.getType() + " request to " + receiversIP + " on " + receivingPort);
-        DatagramSocket socket = new DatagramSocket(Integer.parseInt(receivePort));
+        DatagramSocket socket = new DatagramSocket(Integer.parseInt(sendPort));
         InetAddress receivingNodeAddress = InetAddress.getByName(receiversIP);
         byte[] buffer = request.getRequest().getBytes();
         DatagramPacket packet = new DatagramPacket(buffer, buffer.length, receivingNodeAddress, Integer.parseInt(receivingPort));
