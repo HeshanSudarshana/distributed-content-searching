@@ -116,6 +116,7 @@ public class Node {
     //starts the node functionality
     public void start() throws IOException, InterruptedException {
         isRunning = true;
+        printFileList();
         regToBS();
         if (neighbours != null) {
             joinNetwork();
@@ -176,13 +177,16 @@ public class Node {
             String command = reader.readLine();
             StringTokenizer tokens = new StringTokenizer(command, " ");
             int tokenCount = tokens.countTokens();
-            if (tokenCount <= 2 && tokenCount > 0) {
+            if (tokenCount > 0) {
                 String firstParam = tokens.nextToken();
                 if (firstParam.equals("neighbours")) {
                     printNeighbors();
                 } else if (firstParam.equals("search")) {
                     if (tokens.hasMoreTokens()) {
-                        String searchQuery = tokens.nextToken();
+                        String searchQuery = "";
+                        while (tokens.hasMoreTokens()) {
+                            searchQuery += tokens.nextToken() + " ";
+                        }
                         System.out.println("started a search for " + searchQuery);
                     } else {
                         System.out.println("enter command with the filename");
@@ -193,5 +197,12 @@ public class Node {
             }
         }
 
+    }
+
+    private void printFileList() {
+        System.out.println("Files available on this node");
+        for (String file : files) {
+            System.out.println(">" + file);
+        }
     }
 }
