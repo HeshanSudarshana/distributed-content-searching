@@ -3,10 +3,7 @@ package node;
 import request.JoinReq;
 import request.RegReq;
 import request.SearchReq;
-import utils.DFile;
-import utils.Listener;
-import utils.OpsUDP;
-import utils.SearchQuery;
+import utils.*;
 
 import java.io.*;
 import java.net.DatagramSocket;
@@ -30,7 +27,9 @@ public class Node {
     private Scanner fileScanner;
     private ArrayList<SearchQuery> queryHistory;
 
-    public Node(BootstrapServer bootstrapServer, NodeData nodeData) {
+    protected FTPServer ftp_server;
+
+    public Node(BootstrapServer bootstrapServer, NodeData nodeData) throws Exception {
         this.bootstrapServer = bootstrapServer;
         this.nodeData = nodeData;
         generateFileList();
@@ -38,6 +37,14 @@ public class Node {
         opsUDP = new OpsUDP(nodeData.getSendPort(), nodeData.getRecvPort(), this);
         isRegistered = false;
         this.queryHistory = new ArrayList<>();
+
+        this.ftp_server = new FTPServer(
+                Integer.parseInt(nodeData.getRecvPort()) + Constants.FTP_PORT_OFFSET,
+                nodeData.getNodeName()
+        );
+
+        Thread t = new Thread(ftp_server);
+        t.start();
     }
 
     public NodeData getNodeData() {
@@ -199,6 +206,48 @@ public class Node {
                     } else {
                         System.out.println("enter command with the filename");
                     }
+                } else if (firstParam.equals("download"))
+                {
+                    int num_of_parameters = 0;
+                    String ip = "";
+                    String port = "";
+                    String filename = "";
+
+                    try {
+                        filename = tokens.nextToken();
+                        num_of_parameters++;
+                    }
+                    catch(Exception e)
+                    {
+
+                    }
+
+                    try {
+                        ip = tokens.nextToken();
+                        num_of_parameters++;
+                    }
+                    catch(Exception e)
+                    {
+
+                    }
+
+                    try {
+                        port = tokens.nextToken();
+                        num_of_parameters++;
+                    }
+                    catch(Exception e)
+                    {
+
+                    }
+
+
+
+                    if (num_of_parameters == 3)
+                    {
+                        getFile(ip, Integer.parseInt(port), filename);
+                    }
+
+                    //TODO handle when only file name provided
                 }
             } else {
                 System.out.println("invalid command");
@@ -275,5 +324,22 @@ public class Node {
 
     public void addQueryToHistory(SearchQuery query) {
         this.queryHistory.add(query);
+    }
+
+    public void getFile(String ip, int port, String filename) {
+
+        try {
+
+            FTPClient ftpClient = new FTPClient(
+                    ip,
+                    port+Constants.FTP_PORT_OFFSET,
+                    filename
+            );
+
+            System.out.println("Waiting for file download");
+            Thread.sleep(Constants.FILE_DOWNLOAD_TIMEOUT);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 }
