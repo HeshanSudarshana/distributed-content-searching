@@ -30,8 +30,6 @@ public class Node {
     public Node(BootstrapServer bootstrapServer, NodeData nodeData) {
         this.bootstrapServer = bootstrapServer;
         this.nodeData = nodeData;
-        //this.neighbours = neighbours;
-        //this.files = files;
         generateFileList();
         generateQueryList();
         opsUDP = new OpsUDP(nodeData.getSendPort(), nodeData.getRecvPort(), this);
@@ -121,12 +119,9 @@ public class Node {
         isRunning = true;
         regToBS();
         if (neighbours != null) {
+            joinNetwork();
             printNeighbors();
             startListening();
-            joinNetwork();
-            //for testing purposes
-            printNeighbors();
-
         }
 
 
@@ -161,11 +156,16 @@ public class Node {
     }
 
     private void joinNetwork() throws IOException {
+        ArrayList<NodeData> tempNeighbors = new ArrayList<NodeData>();
         for (NodeData neighborData : neighbours) {
             JoinReq joinReq = new JoinReq(nodeData);
-            opsUDP.sendRequest(joinReq, neighborData);
+            if (opsUDP.joinToNode(neighborData, joinReq)) {
+                tempNeighbors.add(neighborData);
+                System.out.println("received JoinOK from " + neighborData.getIp() + ":" + neighborData.getRecvPort());
+            } else {
+                System.out.println("Join failed to " + neighborData.getIp() + ":" + neighborData.getRecvPort());
+            }
         }
-        //will remove all the neighbors so we can add only the neighbors who sends ACK
-        neighbours.clear();
+        this.neighbours = tempNeighbors;
     }
 }

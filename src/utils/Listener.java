@@ -28,7 +28,7 @@ public class Listener implements Runnable {
                 recvSocket.receive(incoming);
                 byte[] data = incoming.getData();
                 String res = new String(data, 0, incoming.getLength());
-                opsUDP.processMessage(res);
+                opsUDP.processMessage(res, incoming.getAddress(), incoming.getPort());
             } catch (SocketTimeoutException ex) {
 
             } catch (IOException e) {

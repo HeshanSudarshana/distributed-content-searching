@@ -2,6 +2,7 @@ package utils;
 
 import node.Node;
 import node.NodeData;
+import request.JoinReq;
 import request.Request;
 import response.JoinOK;
 import response.Response;
@@ -29,7 +30,7 @@ public class OpsUDP {
     //this method will register the current Node in boostrap and return the received nodeData from BS
     public ArrayList<NodeData> RegisterNode(Request request, String receiversIP, String receivingPort) throws IOException {
         System.out.println("Sent a " + request.getType() + " request to " + receiversIP + " on " + receivingPort);
-        DatagramSocket socket = new DatagramSocket(Integer.parseInt(sendPort));
+        DatagramSocket socket = new DatagramSocket(Integer.parseInt(receivePort));
         InetAddress receivingNodeAddress = InetAddress.getByName(receiversIP);
         byte[] buffer = request.getRequest().getBytes();
         DatagramPacket packet = new DatagramPacket(buffer, buffer.length, receivingNodeAddress, Integer.parseInt(receivingPort));
@@ -63,11 +64,13 @@ public class OpsUDP {
         st.nextToken();
         String noNodes = st.nextToken();
         if (noNodes.equals("0")) {
+            System.out.println("received RegOK from bootstrap server without Nodes");
             return new ArrayList<NodeData>();
         } else if (noNodes.equals("1")) {
             ArrayList<NodeData> nodes = new ArrayList<>();
             NodeData node1 = new NodeData(st.nextToken(), st.nextToken());
             nodes.add(node1);
+            System.out.println("received RegOK from bootstrap server and Nodes " + node1.getIp() + ":" + node1.getRecvPort());
             return nodes;
         } else if (noNodes.equals("2")) {
             ArrayList<NodeData> nodes = new ArrayList<>();
@@ -75,6 +78,7 @@ public class OpsUDP {
             nodes.add(node1);
             NodeData node2 = new NodeData(st.nextToken(), st.nextToken());
             nodes.add(node2);
+            System.out.println("received RegOK from bootstrap server and Nodes " + node1.getIp() + ":" + node1.getRecvPort() + " " + node2.getIp() + ":" + node2.getRecvPort());
             return nodes;
         } else if (noNodes.equals("9999")) {
             System.out.println("Error in the registration command");
@@ -131,7 +135,7 @@ public class OpsUDP {
     }
 
 
-    public void processMessage(String msg) throws IOException {
+    public void processMessage(String msg, InetAddress incomingIP, int port) throws IOException {
         //TODO use this method to processMessages from other Nodes
         StringTokenizer st = new StringTokenizer(msg, " ");
         st.nextToken();
@@ -139,10 +143,11 @@ public class OpsUDP {
         synchronized (node.getNeighbours()) {
             if (command.equals("JOIN")) {
                 System.out.println("JOIN message received " + msg);
-                processJoin(st);
+                processJOIN(st);
             } else if (command.equals("JoinOK")) {
-                //TODO patse JOINOK
                 System.out.println("JOINOK message received " + msg);
+                processJOINOK(st, incomingIP, port);
+
             }
         }
 
@@ -178,7 +183,8 @@ public class OpsUDP {
         socket.close();
     }
 
-    private void processJoin(StringTokenizer st) throws IOException {
+    // this executes when we receive a JOIN request from another Node
+    private void processJOIN(StringTokenizer st) throws IOException {
         boolean isValid = true;
         String joiningIp = null;
         String joiningPort = null;
@@ -234,6 +240,56 @@ public class OpsUDP {
         }
         return false;
     }
+
+    private boolean processJOINOK(StringTokenizer st, InetAddress incomingIP, int port) {
+        if (st.nextToken().equals("0")) {
+            System.out.println("join ok from " + incomingIP.toString() + " " + Integer.toString(port));
+            return true;
+        } else {
+            System.out.println("Joining Failed");
+            return false;
+        }
+    }
+
+    public boolean joinToNode(NodeData nodeData, JoinReq request) throws IOException {
+        System.out.println("Sent a " + request.getType() + " request to " + nodeData.getIp() + " on " + nodeData.getRecvPort());
+        DatagramSocket socket = new DatagramSocket(Integer.parseInt(receivePort));
+        InetAddress receivingNodeAddress = InetAddress.getByName(nodeData.getIp());
+        byte[] buffer = request.getRequest().getBytes();
+        DatagramPacket packet = new DatagramPacket(buffer, buffer.length, receivingNodeAddress, Integer.parseInt(nodeData.getRecvPort()));
+        socket.send(packet);
+        buffer = new byte[65536];
+        String response;
+        DatagramPacket incoming = new DatagramPacket(buffer, buffer.length);
+        socket.setSoTimeout(2000);
+        try {
+            socket.receive(incoming);
+            byte[] data = incoming.getData();
+            response = new String(data, 0, incoming.getLength());
+            socket.close();
+            try {
+                StringTokenizer st = new StringTokenizer(response, " ");
+                st.nextToken();
+                if (st.nextToken().equals("JoinOK")) {
+                    if (st.nextToken().equals("0")) {
+                        return true;
+                    } else {
+                        return false;
+                    }
+                } else {
+                    return false;
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+                return false;
+            }
+        } catch (SocketTimeoutException ex) {
+            System.out.println("No response from " + nodeData.getIp() + ":" + nodeData.getIp());
+            socket.close();
+            return false;
+        }
+    }
+
 
 
 }
