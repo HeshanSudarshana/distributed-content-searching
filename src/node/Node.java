@@ -286,7 +286,7 @@ public class Node {
         notifyLeaving();
         UnregReq unregReq = new UnregReq(this.nodeData.getIp(), this.getNodeData().getRecvPort(), this.getNodeData().getNodeName());
         opsUDP.unregisterNode(unregReq, this.bootstrapServer.getIp(), this.bootstrapServer.getPort());
-
+        System.exit(0);
     }
 
     private void notifyLeaving() throws IOException {
