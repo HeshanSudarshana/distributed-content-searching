@@ -6,6 +6,7 @@ import request.JoinReq;
 import request.Request;
 import response.JoinOK;
 import response.Response;
+import response.SearchOK;
 
 import java.io.IOException;
 import java.net.DatagramPacket;
@@ -150,6 +151,9 @@ public class OpsUDP {
             } else if (command.equals("SER")) {
                 System.out.println("SER message received " + msg);
                 processSearch(st);
+            } else if (command.equals("SEROK")) {
+                System.out.println("SEARCHOK message received " + msg);
+                //add the code here to display and stop the result
             }
         }
 
@@ -179,7 +183,8 @@ public class OpsUDP {
         System.out.println("Sent a " + response.getType() + " request to " + receiver.getIp() + " on " + receiver.getRecvPort());
         DatagramSocket socket = new DatagramSocket(Integer.parseInt(sendPort));
         InetAddress receivingNodeAddress = InetAddress.getByName(receiver.getIp());
-        byte[] buffer = response.getResponse().getBytes();
+        String res = response.getResponse();
+        byte[] buffer = res.getBytes();
         DatagramPacket packet = new DatagramPacket(buffer, buffer.length, receivingNodeAddress, Integer.parseInt(receiver.getRecvPort()));
         socket.send(packet);
         socket.close();
@@ -208,12 +213,10 @@ public class OpsUDP {
 
     }
 
-    private void processSearch(StringTokenizer st) {
+    private void processSearch(StringTokenizer st) throws IOException {
         boolean isValid;
-
-        String ip = st.nextToken();
-        String port = st.nextToken();
-
+        String searchersIP = st.nextToken();
+        String searchersPort = st.nextToken();
         String query = "";
         while (st.hasMoreTokens()) {
             String str = st.nextToken();
@@ -226,10 +229,17 @@ public class OpsUDP {
                 query += str + " ";
             }
         }
-
         int hops = Integer.parseInt(st.nextToken());
         String searchQuery = query.substring(1, query.length());
-        // TODO: complete from here
+        if (this.node.isFileExist(searchQuery)) {
+            //Send SEROK to searching node
+            ArrayList<DFile> matchingFiles = this.node.getFileList(searchQuery);
+            SearchOK searchOK = new SearchOK(matchingFiles, this.node.getNodeData(), hops + 1);
+            sendResponse(searchOK, new NodeData(searchersIP, searchersPort));
+        } else {
+            //imcrease the hop count and send SER request to other nodes
+        }
+
     }
 
     //this checks whether a node already exists

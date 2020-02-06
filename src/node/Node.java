@@ -220,7 +220,7 @@ public class Node {
         return false;
     }
 
-    private ArrayList<DFile> getFileList(String query) {
+    public ArrayList<DFile> getFileList(String query) {
         ArrayList<DFile> temp = new ArrayList<>();
         for (DFile file : files) {
             if (file.isMatch(query)) {
