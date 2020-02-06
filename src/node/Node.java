@@ -249,7 +249,7 @@ public class Node {
 
     private void searchList() throws IOException, InterruptedException {
         for (String query: queries) {
-            System.out.println("Searching for the query - " + query);
+            System.out.println("Searching for the query - " + query + ", Timestamp:" + System.currentTimeMillis());
             searchFile(query);
         }
     }
