@@ -1,8 +1,6 @@
 package node;
 
-import request.JoinReq;
-import request.RegReq;
-import request.SearchReq;
+import request.*;
 import utils.DFile;
 import utils.Listener;
 import utils.OpsUDP;
@@ -29,8 +27,10 @@ public class Node {
     private boolean isRegistered, isRunning;
     private Scanner fileScanner;
     private ArrayList<SearchQuery> queryHistory;
+    private Listener listener;
+    private DatagramSocket receivingSocket;
 
-    public Node(BootstrapServer bootstrapServer, NodeData nodeData) {
+    public Node(BootstrapServer bootstrapServer, NodeData nodeData) throws SocketException {
         this.bootstrapServer = bootstrapServer;
         this.nodeData = nodeData;
         generateFileList();
@@ -38,6 +38,7 @@ public class Node {
         opsUDP = new OpsUDP(nodeData.getSendPort(), nodeData.getRecvPort(), this);
         isRegistered = false;
         this.queryHistory = new ArrayList<>();
+
     }
 
     public NodeData getNodeData() {
@@ -136,10 +137,11 @@ public class Node {
 
     //Node will start to listen for the incoming messages
     private void startListening() throws SocketException {
-        DatagramSocket receivingSocket = new DatagramSocket(Integer.parseInt(nodeData.getRecvPort()));
-        receivingSocket.setSoTimeout(5000);
         System.out.println(nodeData.getNodeName() + " started listening on " + nodeData.getIp() + ":" + nodeData.getRecvPort());
-        Thread listenerThread = new Thread(new Listener(isRunning, receivingSocket, opsUDP));
+        receivingSocket = new DatagramSocket(Integer.parseInt(nodeData.getRecvPort()));
+        receivingSocket.setSoTimeout(5000);
+        this.listener = new Listener(isRunning, receivingSocket, opsUDP);
+        Thread listenerThread = new Thread(listener);
         listenerThread.start();
     }
 
@@ -199,6 +201,8 @@ public class Node {
                     } else {
                         System.out.println("enter command with the filename");
                     }
+                } else if (firstParam.equals("leave")) {
+                    leaveNetwork();
                 }
             } else {
                 System.out.println("invalid command");
@@ -276,4 +280,20 @@ public class Node {
     public void addQueryToHistory(SearchQuery query) {
         this.queryHistory.add(query);
     }
+
+
+    public void leaveNetwork() throws IOException {
+        notifyLeaving();
+        UnregReq unregReq = new UnregReq(this.nodeData.getIp(), this.getNodeData().getRecvPort(), this.getNodeData().getNodeName());
+        opsUDP.unregisterNode(unregReq, this.bootstrapServer.getIp(), this.bootstrapServer.getPort());
+        System.exit(0);
+    }
+
+    private void notifyLeaving() throws IOException {
+        for (NodeData node : this.neighbours) {
+            LeaveReq leaveReq = new LeaveReq(this.nodeData);
+            opsUDP.sendRequest(leaveReq, node);
+        }
+    }
+
 }

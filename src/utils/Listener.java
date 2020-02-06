@@ -38,4 +38,8 @@ public class Listener implements Runnable {
         }
         recvSocket.close();
     }
+
+    public void stopListening() {
+        isRunning = false;
+    }
 }
