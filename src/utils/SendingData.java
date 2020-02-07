@@ -78,6 +78,7 @@ public class SendingData implements Runnable {
             generateFile(this.rootfolder + file_separator + filename, file_content_string);
 
             String encoded_sha_str = getSHA256(file_content_string);
+            System.out.println("File Size: "+filesize);
             System.out.println("Encode SHA-256 Value: "+encoded_sha_str);
 
             File req_file = new File(this.rootfolder + file_separator + filename);
@@ -124,7 +125,8 @@ public class SendingData implements Runnable {
             rand_temp =  random.nextInt(61);
             temp+=alphabet[rand_temp];
         }
-        System.out.println("Generated File String : "+ temp);
+//        System.out.println("Generated File String : "+ temp);
+        System.out.println("File String Generation Completed!");
         return temp;
     }
 
@@ -137,12 +139,12 @@ public class SendingData implements Runnable {
     public void generateFile(String filepath, String file_content)
     {
         try {
-            System.out.println("Generating Random File...");
+            System.out.println("Generating The File...");
             File new_text_file = new File(filepath);
             FileWriter fw = new FileWriter(new_text_file);
             fw.write(file_content);
             fw.close();
-            System.out.println("File Generated !");
+            System.out.println("File Generation Completed!");
         } catch (IOException iox) {
             iox.printStackTrace();
         }
