@@ -37,9 +37,15 @@ public class Node {
         isRegistered = false;
         this.queryHistory = new ArrayList<>();
 
+//        this.ftp_server = new FTPServer(
+//                Integer.parseInt(nodeData.getRecvPort()) + Constants.FTP_PORT_OFFSET,
+//                nodeData.getNodeName()
+//        );
+
         this.ftp_server = new FTPServer(
                 Integer.parseInt(nodeData.getRecvPort()) + Constants.FTP_PORT_OFFSET,
-                nodeData.getNodeName()
+                nodeData.getNodeName(),
+                files
         );
 
         Thread t = new Thread(ftp_server);

@@ -3,6 +3,7 @@ package utils;
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.util.ArrayList;
 
 public class FTPServer implements Runnable{
 
@@ -10,12 +11,20 @@ public class FTPServer implements Runnable{
     private Socket ftp_client_sock;
 
     private String username;
-
+    private ArrayList<DFile> files;
     public FTPServer(int ftp_port, String username) throws Exception {
         // create socket
         ftp_server_sock = new ServerSocket(ftp_port);
         this.username = username;
     }
+
+    public FTPServer(int ftp_port, String username, ArrayList<DFile> files) throws Exception {
+        // create socket
+        ftp_server_sock = new ServerSocket(ftp_port);
+        this.username = username;
+        this.files = files;
+    }
+
 
     public int getPort(){
         return ftp_server_sock.getLocalPort();
@@ -30,7 +39,8 @@ public class FTPServer implements Runnable{
 //                e.printStackTrace();
                 System.out.println("Error: Unknown request from a client.");
             }
-            Thread t_server = new Thread(new SendingData(ftp_client_sock, username));
+//            Thread t_server = new Thread(new SendingData(ftp_client_sock, username));
+            Thread t_server = new Thread(new SendingData(ftp_client_sock, username, files));
             t_server.start();
         }
     }
