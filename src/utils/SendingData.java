@@ -79,7 +79,7 @@ public class SendingData implements Runnable {
 
             String encoded_sha_str = getSHA256(file_content_string);
             System.out.println("File Size: "+filesize);
-            System.out.println("Encode SHA-256 Value: "+encoded_sha_str);
+            System.out.println("Encode SHA Value (Server): "+encoded_sha_str);
 
             File req_file = new File(this.rootfolder + file_separator + filename);
             byte[] byte_array = new byte[(int) req_file.length()];
