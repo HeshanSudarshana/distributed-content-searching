@@ -66,11 +66,11 @@ public class ReceiveData implements Runnable {
     public String getFileContent(String downloaded_filename) throws IOException {
         File file = new File(downloaded_filename);
 
-        BufferedReader br = new BufferedReader(new FileReader(file));
-
-        String st;
-        while ((st = br.readLine()) != null)
-            System.out.println(st);
+//        BufferedReader br = new BufferedReader(new FileReader(file));
+//
+//        String st;
+//        while ((st = br.readLine()) != null)
+//            System.out.println(st);
 
 //        File file = new File(downloaded_filename);
         Scanner sc = new Scanner(file);

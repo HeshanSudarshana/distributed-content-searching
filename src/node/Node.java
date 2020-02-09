@@ -1,6 +1,5 @@
 package node;
 
-
 import request.*;
 import utils.*;
 
@@ -142,8 +141,6 @@ public class Node {
             printNeighbors();
             readUserCommands();
         }
-
-
     }
 
     //Node will start to listen for the incoming messages
